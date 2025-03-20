@@ -1,0 +1,25 @@
+// Write your overrides
+
+/* width */
+::-webkit-scrollbar {
+  block-size: 5px;
+  inline-size: 5px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+  border-radius: 1px;
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+  border-radius: 10px;
+  background: rgb(var(--v-theme-primary)) !important;
+  inline-size: 5px;
+}
+
+.link-style:hover{
+  color: rgb(var(--v-theme-primary)) !important;
+  cursor: pointer;
+  text-decoration: underline;
+}

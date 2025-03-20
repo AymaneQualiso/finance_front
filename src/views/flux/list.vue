@@ -1,0 +1,194 @@
+<template>
+  <VDialog v-model="isAddDialogOpen" persistent max-width="600">
+    <!-- Dialog close btn -->
+    <DialogCloseBtn :disabled="isFluxLoading" @click="closeModal" />
+
+    <!-- Dialog Content -->
+    <VCard
+      :title="$t('flux')"
+      :loading="isFluxLoading"
+      :disabled="isFluxLoading"
+    >
+      <VCardText>
+        <VForm ref="sendForm">
+          <VRow>
+            <VCol cols="12">
+              <AppCombobox
+                v-model="fluxForm.balanceId"
+                :label="$t('balances')"
+                :placeholder="$t('balances')"
+                :items="balanceHeads"
+                item-title="label"
+                item-value="id"
+                :rules="[requiredValidator]"
+                class="mt-2 required"
+                :return-object="false"
+                :readonly="action === 'show'"
+                @update:model-value="changeFluxForm()"
+              />
+            </VCol>
+          </VRow>
+          <!-- <VRow v-if="fluxForm.balanceId">
+            <VCol>
+              <AppCombobox
+                v-model="fluxForm.scenario"
+                :items="getEnums(enums.scenarioBilan, t)"
+                :label="$t('scenario')"
+                :placeholder="$t('scenario')"
+                :rules="[requiredValidator]"
+                item-title="title"
+                item-value="key"
+                :return-object="false"
+                class="required"
+                :readonly="
+                  !getEnums(enums.scenarioBilan, t)?.length || action === 'show'
+                "
+                @update:model-value="
+                  (value) => {
+                    checkScenario(value);
+                  }
+                "
+              />
+            </VCol>
+          </VRow>
+          <VRow v-if="fluxForm.scenario">
+            <VCol>
+              <AppCombobox
+                v-model="fluxForm.year_reference"
+                :items="yearsReferenceData"
+                :label="$t('year_reference')"
+                :placeholder="$t('year_reference')"
+                :rules="[requiredValidator]"
+                item-title="title"
+                item-value="key"
+                :return-object="false"
+                class="required"
+                :readonly="
+                  action === 'show' ||
+                  fluxForm.scenario == enums.scenarioBilan.DEFINITIVE
+                "
+              />
+            </VCol>
+          </VRow> -->
+        </VForm>
+      </VCardText>
+
+      <VCardText class="d-flex justify-end flex-wrap gap-3">
+        <VBtn variant="tonal" color="secondary" @click="closeModal">
+          {{ t("Cancel") }}
+        </VBtn>
+        <VBtn @click="createFluxItem" :loading="isFluxLoading" v-if="action !== 'show'">
+          {{ t("Confirm") }}
+        </VBtn>
+      </VCardText>
+    </VCard>
+  </VDialog>
+  <VCard :title="$t('flux')" v-if="$can('flux.index')">
+    <!-- make create button -->
+    <template #append>
+      <VBtn color="primary" @click="openModal()" v-if="$can('flux.store')">
+        {{ $t("add") }}
+      </VBtn>
+    </template>
+
+    <DataTableCore
+      v-model="selected"
+      :headers="headers"
+      :items="fluxItems"
+      :total="total"
+      :per_page="10"
+      :is-loading="isLoadingFluxItems"
+      :filter="filter"
+      @change-filter="changeFilter"
+      :page="page"
+    >
+      <template #item.status="{ item }">
+        <VChip v-if="item.status" :color="getStatusColor(item.status)">
+          {{ item.status }}
+        </VChip>
+      </template>
+      <template #item.label="{ item }">
+          <span v-tooltip="item.label">{{ item.label }}</span>
+        </template>
+      <template #item.balance_sheet_label="{ item }">
+          <span v-tooltip="item.balance_sheet_label">{{ item.balance_sheet_label }}</span>
+        </template>
+      <template #item.flag_bg_consolide="{ item }">
+        <VChip :color="getIsBgConsolideColor(item.flag_bg_consolide)">
+          {{ item.flag_bg_consolide ? t('Yes') : t('non') }}
+        </VChip>
+      </template>
+      <template #item.actions="{ item }">
+        <div class="d-flex justify-end gap-3">
+          <TooltipIcon
+            v-if="$can('flux.update')"
+            :tooltip-text="$t('edit')"
+            icon="tabler-edit"
+            color="primary"
+            @click="redirectToEdit(item.id)"
+          />
+        </div>
+      </template>
+    </DataTableCore>
+  </VCard>
+</template>
+
+<script setup>
+import { useFlux } from "@/composables/flux";
+import { useRouter } from "vue-router";
+
+const showSnackbar = inject("showSnackbar");
+const t = inject("t");
+const router = useRouter();
+
+const getStatusColor = (status) => {
+  switch (status) {
+    case "Brouillon":
+      return "grey";
+    case "Validé":
+      return "success";
+    case "Clôturé":
+      return "error";
+    default:
+      return "primary";
+  }
+};
+
+const {
+  sendForm,
+  enums,
+  yearsReferenceData,
+  headers,
+  filter,
+  total,
+  selected,
+  changeFilter,
+  getData,
+  isLoadingFluxItems,
+  fluxItems,
+  openModal,
+  isAddDialogOpen,
+  fluxForm,
+  getAllBalanceHeads,
+  balanceHeads,
+  createFluxItem,
+  closeModal,
+  checkScenario,
+  getIsBgConsolideColor,
+  isFluxLoading,
+} = useFlux(t, showSnackbar);
+
+const redirectToEdit = (id) => {
+  router.push({ name: "flux-edit", params: { id } });
+};
+
+function changeFluxForm() {
+  fluxForm.value.scenario = "";
+  fluxForm.value.yearReference = "";
+}
+
+onMounted(async () => {
+  await getData();
+  await getAllBalanceHeads();
+});
+</script>
