@@ -45,47 +45,47 @@ jobs:
   #             sudo docker rm front-app || true
   #             sudo docker run -dp 4444:80 --name front-app front-app
   #           EOF
-    deploy:
-      docker:
-        - image: cimg/base:stable
-      steps:
-        - checkout
-        - add_ssh_keys:
-            fingerprints:
-              - "SHA256:PHpuUx3tNLUkLE3O0BSULMrzvXJ0KHQ6uOSqKTtEdFM"  # Replace with the actual key fingerprint from CircleCI
-        - run:
-            name: SSH into Production & Deploy
-            # command: |
-            #   ssh -o StrictHostKeyChecking=no ubuntu@$SERVER_IP << 'EOF'
-            #     cd /path/to/your/project
-            #     git pull origin main
-            #     sudo docker build -t front-app .
-            #     sudo docker stop front-app || true
-            #     sudo docker rm front-app || true
-            #     sudo docker run -dp 4444:80 --name front-app front-app
-            #   EOF
-            command: |
-              ssh -o StrictHostKeyChecking=no ubuntu@$SERVER_IP << 'EOF'
-                # Navigate to the home directory
-                cd /home/ubuntu/workspace
+  deploy:
+    docker:
+      - image: cimg/base:stable
+    steps:
+      - checkout
+      - add_ssh_keys:
+          fingerprints:
+            - "SHA256:PHpuUx3tNLUkLE3O0BSULMrzvXJ0KHQ6uOSqKTtEdFM"  # Replace with the actual key fingerprint from CircleCI
+      - run:
+          name: SSH into Production & Deploy
+          # command: |
+          #   ssh -o StrictHostKeyChecking=no ubuntu@$SERVER_IP << 'EOF'
+          #     cd /path/to/your/project
+          #     git pull origin main
+          #     sudo docker build -t front-app .
+          #     sudo docker stop front-app || true
+          #     sudo docker rm front-app || true
+          #     sudo docker run -dp 4444:80 --name front-app front-app
+          #   EOF
+          command: |
+            ssh -o StrictHostKeyChecking=no ubuntu@$SERVER_IP << 'EOF'
+              # Navigate to the home directory
+              cd /home/ubuntu/workspace
 
-                # If the project directory doesn't exist, clone it
-                if [ ! -d "front_finance" ]; then
-                  git clone git@github.com:AymaneQualiso/finance_front.git
-                fi
+              # If the project directory doesn't exist, clone it
+              if [ ! -d "front_finance" ]; then
+                git clone git@github.com:AymaneQualiso/finance_front.git
+              fi
 
-                # Enter the project directory
-                cd your-project
+              # Enter the project directory
+              cd your-project
 
-                # Ensure we have the latest code
-                git pull origin main
+              # Ensure we have the latest code
+              git pull origin main
 
-                # Build and run the Docker container
-                sudo docker build -t front-app .
-                sudo docker stop front-app || true
-                sudo docker rm front-app || true
-                sudo docker run -dp 4444:80 --name front-app front-app
-              EOF
+              # Build and run the Docker container
+              sudo docker build -t front-app .
+              sudo docker stop front-app || true
+              sudo docker rm front-app || true
+              sudo docker run -dp 4444:80 --name front-app front-app
+            EOF
 
 
 
