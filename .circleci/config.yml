@@ -65,7 +65,7 @@ jobs:
           #     sudo docker run -dp 4444:80 --name front-app front-app
           #   EOF
           command: |
-            ssh -o StrictHostKeyChecking=no ubuntu@54.163.148.40 << 'EOF'
+            ssh -o StrictHostKeyChecking=no ubuntu@54.163.148.40 \<< 'EOF'
               # Navigate to the home directory
               cd /home/ubuntu/workspace
 
@@ -75,7 +75,7 @@ jobs:
               fi
 
               # Enter the project directory
-              cd your-project
+              cd front_finance
 
               # Ensure we have the latest code
               git pull origin main
@@ -86,6 +86,7 @@ jobs:
               sudo docker rm front-app || true
               sudo docker run -dp 4444:80 --name front-app front-app
             EOF
+
 
 
 
