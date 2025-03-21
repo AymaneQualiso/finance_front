@@ -65,7 +65,7 @@ jobs:
           #     sudo docker run -dp 4444:80 --name front-app front-app
           #   EOF
           command: |
-            ssh -o StrictHostKeyChecking=no ubuntu@$SERVER_IP << 'EOF'
+            ssh -o StrictHostKeyChecking=no ubuntu@54.163.148.40 << 'EOF'
               # Navigate to the home directory
               cd /home/ubuntu/workspace
 
