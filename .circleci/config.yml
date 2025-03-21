@@ -1,41 +1,98 @@
-# This config was automatically generated from your source code
-# Stacks detected: deps:node:.
 version: 2.1
 orbs:
   node: circleci/node@5
+
 jobs:
   build-node:
-    # Build node project
     executor: node/default
     steps:
       - checkout
-      - node/install-packages:
-          pkg-manager: npm
       - run:
-          command: npm run build
+          name: Install pnpm
+          command: npm install -g pnpm@latest-8
       - run:
-          name: Create the ~/artifacts directory if it doesn't exist
+          name: Install dependencies
+          command: pnpm install
+      - run:
+          name: Build icons
+          command: pnpm run build:icons
+      - run:
+          name: Build application
+          command: pnpm run build
+      - run:
+          name: Create artifacts directory
           command: mkdir -p ~/artifacts
-      # Copy output to artifacts dir
       - run:
-          name: Copy artifacts
-          command: cp -R build dist public .output .next .docusaurus ~/artifacts 2>/dev/null || true
+          name: Copy build output
+          command: cp -R dist ~/artifacts 2>/dev/null || true
       - store_artifacts:
           path: ~/artifacts
           destination: node-build
-  deploy:
-    # This is an example deploy job, not actually used by the workflow
-    docker:
-      - image: cimg/base:stable
-    steps:
-      # Replace this with steps to deploy to users
-      - run:
-          name: deploy
-          command: '#e.g. ./deploy.sh'
+
+  # deploy:
+  #   docker:
+  #     - image: cimg/base:stable
+  #   steps:
+  #     - checkout
+  #     - run:
+  #         name: SSH into Production & Deploy
+  #         command: |
+  #           ssh -o StrictHostKeyChecking=no $USER@$SERVER_IP << 'EOF'
+  #             cd /path/to/your/project
+  #             git pull origin main  # Pull the latest changes (if applicable)
+  #             sudo docker build -t front-app .
+  #             sudo docker stop front-app || true
+  #             sudo docker rm front-app || true
+  #             sudo docker run -dp 4444:80 --name front-app front-app
+  #           EOF
+    deploy:
+      docker:
+        - image: cimg/base:stable
+      steps:
+        - checkout
+        - add_ssh_keys:
+            fingerprints:
+              - "SHA256:PHpuUx3tNLUkLE3O0BSULMrzvXJ0KHQ6uOSqKTtEdFM"  # Replace with the actual key fingerprint from CircleCI
+        - run:
+            name: SSH into Production & Deploy
+            # command: |
+            #   ssh -o StrictHostKeyChecking=no ubuntu@$SERVER_IP << 'EOF'
+            #     cd /path/to/your/project
+            #     git pull origin main
+            #     sudo docker build -t front-app .
+            #     sudo docker stop front-app || true
+            #     sudo docker rm front-app || true
+            #     sudo docker run -dp 4444:80 --name front-app front-app
+            #   EOF
+            command: |
+              ssh -o StrictHostKeyChecking=no ubuntu@$SERVER_IP << 'EOF'
+                # Navigate to the home directory
+                cd /home/ubuntu/workspace
+
+                # If the project directory doesn't exist, clone it
+                if [ ! -d "front_finance" ]; then
+                  git clone git@github.com:AymaneQualiso/finance_front.git
+                fi
+
+                # Enter the project directory
+                cd your-project
+
+                # Ensure we have the latest code
+                git pull origin main
+
+                # Build and run the Docker container
+                sudo docker build -t front-app .
+                sudo docker stop front-app || true
+                sudo docker rm front-app || true
+                sudo docker run -dp 4444:80 --name front-app front-app
+              EOF
+
+
+
 workflows:
-  build:
+  build-and-deploy:
     jobs:
       - build-node
-    # - deploy:
-    #     requires:
-    #       - build-node
+      - deploy:
+          requires:
+            - build-node
